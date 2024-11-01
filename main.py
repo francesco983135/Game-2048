@@ -44,6 +44,6 @@ def main():
             # Handle invalid input error
             print(ve)
 
+# Run the game
 if __name__ == "__main__":
     main()
-
