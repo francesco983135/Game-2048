@@ -1,48 +1,73 @@
-import game_functions as gf
+import random
 
-def main():
-    grid = gf.initialize_grid()
-    gf.display_grid(grid)
+# Initialize 4x4 grid
+def initialize_grid():
+    grid = [[0] * 4 for _ in range(4)]
+    add_new_number(grid)
+    add_new_number(grid)
+    return grid
 
-    while True:
-        try:
-            # Capture user input
-            move = input("Enter move (w/a/s/d to move, q to quit): ").strip().lower()
+# Add a new number to the grid (only adds a '2' in an empty cell)
+def add_new_number(grid):
+    empty_cells = [(i, j) for i in range(4) for j in range(4) if grid[i][j] == 0]
+    if empty_cells:
+        i, j = random.choice(empty_cells)
+        grid[i][j] = 2
 
-            # Validate input
-            if move not in ['w', 'a', 's', 'd', 'q']:
-                raise ValueError("Invalid input! Please enter 'w', 'a', 's', 'd' to move, or 'q' to quit.")
+# Check if there are no moves left (game over)
+def check_game_over(grid):
+    for i in range(4):
+        for j in range(4):
+            if grid[i][j] == 0:
+                return False
+            if i < 3 and grid[i][j] == grid[i + 1][j]:
+                return False
+            if j < 3 and grid[i][j] == grid[i][j + 1]:
+                return False
+    return True
 
-            # Handle quit option
-            if move == 'q':
-                print("Game over!")
-                break
+# Check if the player has reached 2048
+def check_win(grid):
+    return any(2048 in row for row in grid)
 
-            # Execute the move based on user input
-            if move == 'w':
-                gf.move_up(grid)
-            elif move == 's':
-                gf.move_down(grid)
-            elif move == 'a':
-                gf.move_left(grid)
-            elif move == 'd':
-                gf.move_right(grid)
+# Implement move functions (move_left, move_right, move_up, move_down)
+def move_left(grid):
+    for i in range(4):
+        slide_and_merge_row(grid[i])
 
-            # Add a new number after each valid move
-            gf.add_new_number(grid)
-            gf.display_grid(grid)
+def move_right(grid):
+    for i in range(4):
+        grid[i] = grid[i][::-1]
+        slide_and_merge_row(grid[i])
+        grid[i] = grid[i][::-1]
 
-            # Check for win or game over conditions
-            if gf.check_win(grid):
-                print("Congratulations! You've reached 2048! You win!")
-                break
-            elif gf.check_game_over(grid):
-                print("No more moves available! Game over.")
-                break
+def move_up(grid):
+    for j in range(4):
+        column = [grid[i][j] for i in range(4)]
+        slide_and_merge_row(column)
+        for i in range(4):
+            grid[i][j] = column[i]
 
-        except ValueError as ve:
-            # Handle invalid input error
-            print(ve)
+def move_down(grid):
+    for j in range(4):
+        column = [grid[i][j] for i in range(4)][::-1]
+        slide_and_merge_row(column)
+        column.reverse()
+        for i in range(4):
+            grid[i][j] = column[i]
 
-if __name__ == "__main__":
-    main()
+# Slide and merge a single row or column
+def slide_and_merge_row(row):
+    new_row = [num for num in row if num != 0]
+    for i in range(len(new_row) - 1):
+        if new_row[i] == new_row[i + 1]:
+            new_row[i] *= 2
+            new_row[i + 1] = 0
+    new_row = [num for num in new_row if num != 0]
+    row[:] = new_row + [0] * (4 - len(new_row))
+
+# Display the grid
+def display_grid(grid):
+    for row in grid:
+        print(" ".join(str(num).center(4) if num != 0 else "." for num in row))
+    print()
